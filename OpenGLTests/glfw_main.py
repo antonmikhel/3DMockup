@@ -18,20 +18,23 @@ def main():
 
     glfw.make_context_current(window)
 
-    triangle = [-0.5, -0.5, 0.0,
-                0.5, -0.5, 0.0,
-                0.0, 0.5, 0.0]
+    triangle = [-0.5, -0.5, 0.0, 1.0, 0.0, 0.0,
+                0.5, -0.5, 0.0, 0.0, 1.0, 0.0,
+                0.0, 0.5, 0.0, 0.0, 0.0, 1.0]
 
     triangle = numpy.array(triangle, dtype=numpy.float32)
 
     vertex_shader = """
     #version 330
 
-    in vec4 position;
+    in vec3 position;
+    in vec3 color;
+    out vec3 newColor;
 
     void main()
     {
-        gl_Position = position;
+        gl_Position = vec4(position, 1.0f);
+        newColor = color;
     }
 
     """
@@ -39,9 +42,12 @@ def main():
     fragment_shader = """
     #version 330
 
+    in vec3 newColor;
+    out vec4 outColor;
+
     void main()
     {
-        gl_FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        outColor = vec4(newColor, 1.0f);
     }
     """
 
@@ -50,11 +56,15 @@ def main():
 
     vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, 36, triangle, GL_STATIC_DRAW)  # Size in bytes
+    glBufferData(GL_ARRAY_BUFFER, 72, triangle, GL_STATIC_DRAW)  # Size in bytes
 
     position = glGetAttribLocation(shader, "position")
-    glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, 0, None)
+    glVertexAttribPointer(position, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(0))
     glEnableVertexAttribArray(position)
+
+    color = glGetAttribLocation(shader, "color")
+    glVertexAttribPointer(color, 3, GL_FLOAT, GL_FALSE, 24, ctypes.c_void_p(12))
+    glEnableVertexAttribArray(color)
 
     glUseProgram(shader)
 
