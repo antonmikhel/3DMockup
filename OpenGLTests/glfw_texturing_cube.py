@@ -12,7 +12,7 @@ def main():
     if not glfw.init():
         return
 
-    window = glfw.create_window(800, 600, "My OpenGL window", None, None)
+    window = glfw.create_window(800, 600, "OpenGL window", None, None)
 
     if not window:
         glfw.terminate()
@@ -67,11 +67,15 @@ def main():
     in layout(location = 1) vec3 color;
     in layout(location = 2) vec2 textureCoords;
     uniform mat4 transform;
+    uniform mat4 view;
+    uniform mat4 projection;
+    uniform mat4 model;
+    
     out vec3 newColor;
     out vec2 newTexture;
     void main()
     {
-        gl_Position = transform * vec4(position, 1.0f);
+        gl_Position = projection * view * model * transform * vec4(position, 1.0f);
         newColor = color;
         newTexture = textureCoords;
     }
@@ -120,7 +124,7 @@ def main():
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
     # load image
-    image = Image.open("res/crate.jpg")
+    image = Image.open(r"D:\Dev\Resources\Images for products\512x512tex.jpg")
     img_data = numpy.array(list(image.getdata()), numpy.uint8)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.width, image.height, 0, GL_RGB, GL_UNSIGNED_BYTE, img_data)
     glEnable(GL_TEXTURE_2D)
@@ -130,18 +134,33 @@ def main():
 
     glClearColor(0.2, 0.3, 0.2, 1.0)
     glEnable(GL_DEPTH_TEST)
-    #glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+    # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+
+    view = pyrr.matrix44.create_from_translation(pyrr.Vector3([0.0, 0.0, -3.0]))
+
+    projection = pyrr.matrix44.create_perspective_projection_matrix(55.0, 800/600, 0.1, 100.0)
+
+    model = pyrr.matrix44.create_from_translation(pyrr.Vector3([0.0, 0.0, 0.0]))
+
+    view_loc = glGetUniformLocation(shader, "view")
+    proj_loc = glGetUniformLocation(shader, "projection")
+    model_loc = glGetUniformLocation(shader, "model")
+
+    glUniformMatrix4fv(view_loc, 1, GL_FALSE, view)
+    glUniformMatrix4fv(proj_loc, 1, GL_FALSE, projection)
+    glUniformMatrix4fv(model_loc, 1, GL_FALSE, model)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        rot_x = pyrr.Matrix44.from_x_rotation(0.5 * glfw.get_time() )
-        rot_y = pyrr.Matrix44.from_y_rotation(0.8 * glfw.get_time() )
+        rot_x = pyrr.Matrix44.from_x_rotation(0.5 * glfw.get_time())
+        rot_y = pyrr.Matrix44.from_y_rotation(0.8 * glfw.get_time())
+        rot = numpy.array(rot_x * rot_y)
 
         transformLoc = glGetUniformLocation(shader, "transform")
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, rot_x * rot_y)
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, rot)
 
         glDrawElements(GL_TRIANGLES, len(indices), GL_UNSIGNED_INT, None)
 
