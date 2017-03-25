@@ -53,8 +53,8 @@ class ObjLoader(object):
                     self.__normal_index.append(norm_i)
 
         self.__vertex_index = [item for sublist in self.__vertex_index for item in sublist]
-        self.__texture_index = [item for sublist in self.__vertex_index for item in sublist]
-        self.__normal_index = [item for sublist in self.__vertex_index for item in sublist]
+        self.__texture_index = [item for sublist in self.__texture_index for item in sublist]
+        self.__normal_index = [item for sublist in self.__normal_index for item in sublist]
 
         for i in self.__vertex_index:
             self.__model.extend(self.__vert_coords[i])
