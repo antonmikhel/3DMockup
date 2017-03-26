@@ -13,7 +13,9 @@ class ObjLoader(object):
 
         self.__model = []
 
-        self.model = None
+        self.num_vertex = 0
+
+        self.model = numpy.array([])
 
     def load_model(self, file_path):
         with open(file_path) as obj_file:
@@ -57,12 +59,13 @@ class ObjLoader(object):
         self.__normal_index = [item for sublist in self.__normal_index for item in sublist]
 
         for i in self.__vertex_index:
+            self.num_vertex += 1
             self.__model.extend(self.__vert_coords[i])
 
         for i in self.__texture_index:
             self.__model.extend(self.__text_coords[i])
 
-        for i in self.__normal_index:
-            self.__model.extend(self.__norm_coords[i])
+        # for i in self.__normal_index:
+        #     self.__model.extend(self.__norm_coords[i])
 
         self.model = numpy.array(self.__model, dtype=numpy.float32)
